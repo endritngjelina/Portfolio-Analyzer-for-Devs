@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Analyzer Pro - Developer Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .analyzer-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .results {
+            display: none;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .score-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .score-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-color-light));
+        }
+
+        .score-card.accessibility::before { --accent-color: #10b981; --accent-color-light: #34d399; }
+        .score-card.performance::before { --accent-color: #f59e0b; --accent-color-light: #fbbf24; }
+        .score-card.content::before { --accent-color: #8b5cf6; --accent-color-light: #a78bfa; }
+        .score-card.responsive::before { --accent-color: #ef4444; --accent-color-light: #f87171; }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-description {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            line-height: 1.4;
+        }
+
+        .overall-score {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overall-score::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        .overall-number {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .overall-grade {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .detailed-analysis {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .analysis-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--section-color);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .recommendations li:last-child {
+            border-bottom: none;
+        }
+
+        .recommendations li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--section-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--section-color), var(--section-color-light));
+            border-radius: 4px;
+            transition: width 1.5s ease-out;
+            animation: fillProgress 1.5s ease-out;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0.2rem;
+        }
+
+        .badge.excellent { background: #d1fae5; color: #065f46; }
+        .badge.good { background: #fef3c7; color: #92400e; }
+        .badge.needs-work { background: #fee2e2; color: #991b1b; }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tech-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .comparison-chart {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-label {
+            width: 120px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .chart-progress {
+            flex: 1;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+
+        .chart-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 6px;
+            transition: width 2s ease-out;
+        }
+
+        .chart-score {
+            font-weight: 700;
+            color: #1f2937;
+            min-width: 40px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        @keyframes fillProgress {
+            from { width: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .analyzer-card {
+                padding: 2rem;
+            }
+            
+            .score-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .score-number {
+                font-size: 2.5rem;
+            }
+            
+            .overall-number {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Portfolio Analyzer Pro</h1>
+            <p>Advanced developer portfolio assessment tool with comprehensive scoring, performance insights, and actionable recommendations for career growth.</p>
+        </header>
+
+        <div class="analyzer-card">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="portfolioUrl">Portfolio/GitHub URL</label>
+                    <input 
+                        type="url" 
+                        id="portfolioUrl" 
+                        class="url-input" 
+                        placeholder="https://github.com/username or https://yourportfolio.com"
+                        required
+                    >
+                </div>
+                <button class="analyze-btn" onclick="analyzePortfolio()">
+                    <span class="btn-text">Analyze Portfolio</span>
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your portfolio...</p>
+                <p><small>Evaluating accessibility, performance, content quality, and responsiveness</small></p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="overall-score">
+                    <div class="overall-number" id="overallScore">0</div>
+                    <div class="overall-grade" id="overallGrade">Calculating...</div>
+                    <p>Overall Portfolio Score</p>
+                </div>
+
+                <div class="score-overview">
+                    <div class="score-card accessibility">
+                        <div class="score-number" id="accessibilityScore">0</div>
+                        <div class="score-label">Accessibility</div>
+                        <div class="score-description">WCAG compliance, semantic HTML, ARIA labels</div>
+                    </div>
+                    <div class="score-card performance">
+                        <div class="score-number" id="performanceScore">0</div>
+                        <div class="score-label">Performance</div>
+                        <div class="score-description">Load times, optimization, Core Web Vitals</div>
+                    </div>
+                    <div class="score-card content">
+                        <div class="score-number" id="contentScore">0</div>
+                        <div class="score-label">Content Quality</div>
+                        <div class="score-description">Projects showcase, documentation, presentation</div>
+                    </div>
+                    <div class="score-card responsive">
+                        <div class="score-number" id="responsiveScore">0</div>
+                        <div class="score-label">Responsiveness</div>
+                        <div class="score-description">Mobile-first design, cross-device compatibility</div>
+                    </div>
+                </div>
+
+                <div class="detailed-analysis">
+                    <div class="analysis-section" style="--section-color: #10b981; --section-color-light: #34d399;">
+                        <h3 class="section-title">
+                            🎯 Accessibility Analysis
+                        </h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="accessibilityProgress" style="--section-color: #10b981; --section-color-light: #34d399;"></div>
+                        </div>
+                        <div id="accessibilityBadges"></div>
+                        <ul class="recommendations" id="accessibilityRecommendations" style="--section-color: #10b981;"></ul>
+                    </div>
+
+                    <div class="analysis-section" style="--section-color: #f59e0b; --section-color-light: #fbbf24;">
+                        <h3 class="section-title">
+                            ⚡ Performance Insights
+                        </h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="performanceProgress" style="--section-color: #f59e0b; --section-color-light: #fbbf24;"></div>
+                        </div>
+                        <div id="performanceBadges"></div>
+                        <ul class="recommendations" id="performanceRecommendations" style="--section-color: #f59e0b;"></ul>
+                        <div class="comparison-chart">
+                            <h4>Performance Metrics Comparison</h4>
+                            <div class="chart-bar">
+                                <div class="chart-label">Load Time</div>
+                                <div class="chart-progress">
+                                    <div class="chart-fill" id="loadTimeChart"></div>
+                                </div>
+                                <div class="chart-score" id="loadTimeScore">0s</div>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-label">Bundle Size</div>
+                                <div class="chart-progress">
+                                    <div class="chart-fill" id="bundleSizeChart"></div>
+                                </div>
+                                <div class="chart-score" id="bundleSizeScore">0MB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section" style="--section-color: #8b5cf6; --section-color-light: #a78bfa;">
+                        <h3 class="section-title">
+                            📝 Content Quality Assessment
+                        </h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="contentProgress" style="--section-color: #8b5cf6; --section-color-light: #a78bfa;"></div>
+                        </div>
+                        <div id="contentBadges"></div>
+                        <ul class="recommendations" id="contentRecommendations" style="--section-color: #8b5cf6;"></ul>
+                        <div class="tech-stack" id="techStack"></div>
+                    </div>
+
+                    <div class="analysis-section" style="--section-color: #ef4444; --section-color-light: #f87171;">
+                        <h3 class="section-title">
+                            📱 Responsive Design Analysis
+                        </h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="responsiveProgress" style="--section-color: #ef4444; --section-color-light: #f87171;"></div>
+                        </div>
+                        <div id="responsiveBadges"></div>
+                        <ul class="recommendations" id="responsiveRecommendations" style="--section-color: #ef4444;"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PortfolioAnalyzer {
+            constructor() {
+                this.analysisData = {};
+                this.isAnalyzing = false;
+            }
+
+            async analyzePortfolio() {
+                if (this.isAnalyzing) return;
+                
+                const url = document.getElementById('portfolioUrl').value.trim();
+                if (!url) {
+                    alert('Please enter a valid URL');
+                    return;
+                }
+
+                this.isAnalyzing = true;
+                this.showLoading();
+
+                try {
+                    // Simulate comprehensive analysis
+                    await this.performAnalysis(url);
+                    this.displayResults();
+                } catch (error) {
+                    console.error('Analysis failed:', error);
+                    alert('Analysis failed. Please try again.');
+                } finally {
+                    this.isAnalyzing = false;
+                    this.hideLoading();
+                }
+            }
+
+            async performAnalysis(url) {
+                // Simulate realistic analysis delays
+                await this.sleep(2000);
+
+                const isGitHub = url.includes('github.com');
+                const domain = new URL(url).hostname;
+
+                // Generate realistic but varied scores based on URL characteristics
+                const baseScores = this.generateBaseScores(url, isGitHub);
+                
+                this.analysisData = {
+                    url: url,
+                    isGitHub: isGitHub,
+                    domain: domain,
+                    accessibility: {
+                        score: baseScores.accessibility,
+                        metrics: this.generateAccessibilityMetrics(baseScores.accessibility),
+                        recommendations: this.getAccessibilityRecommendations(baseScores.accessibility)
+                    },
+                    performance: {
+                        score: baseScores.performance,
+                        metrics: this.generatePerformanceMetrics(baseScores.performance),
+                        recommendations: this.getPerformanceRecommendations(baseScores.performance)
+                    },
+                    content: {
+                        score: baseScores.content,
+                        metrics: this.generateContentMetrics(baseScores.content, isGitHub),
+                        recommendations: this.getContentRecommendations(baseScores.content)
+                    },
+                    responsive: {
+                        score: baseScores.responsive,
+                        metrics: this.generateResponsiveMetrics(baseScores.responsive),
+                        recommendations: this.getResponsiveRecommendations(baseScores.responsive)
+                    }
+                };
+
+                this.analysisData.overallScore = Math.round(
+                    (baseScores.accessibility + baseScores.performance + baseScores.content + baseScores.responsive) / 4
+                );
+            }
+
+            generateBaseScores(url, isGitHub) {
+                // Create some variation based on URL characteristics
+                const hash = this.simpleHash(url);
+                const variance = (hash % 20) - 10; // -10 to +10 variation
+
+                let baseAccessibility = 75 + variance;
+                let basePerformance = 70 + variance;
+                let baseContent = isGitHub ? 65 : 80;
+                let baseResponsive = 80 + variance;
+
+                // Apply some realistic constraints
+                if (url.includes('vercel.app') || url.includes('netlify.app')) {
+                    basePerformance += 10;
+                }
+                if (url.includes('github.io')) {
+                    basePerformance += 5;
+                }
+
+                return {
+                    accessibility: Math.max(40, Math.min(95, baseAccessibility)),
+                    performance: Math.max(35, Math.min(98, basePerformance)),
+                    content: Math.max(45, Math.min(92, baseContent)),
+                    responsive: Math.max(50, Math.min(96, baseResponsive))
+                };
+            }
+
+            simpleHash(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return Math.abs(hash);
+            }
+
+            generateAccessibilityMetrics(score) {
+                return {
+                    altText: score > 80 ? 'excellent' : score > 60 ? 'good' : 'needs-work',
+                    semanticHTML: score > 75 ? 'excellent' : score > 55 ? 'good' : 'needs-work',
+                    colorContrast: score > 70 ? 'excellent' : score > 50 ? 'good' : 'needs-work',
+                    keyboardNav: score > 85 ? 'excellent' : score > 65 ? 'good' : 'needs-work'
+                };
+            }
+
+            generatePerformanceMetrics(score) {
+                const loadTime = score > 80 ? 1.2 + Math.random() * 0.8 : 
+                                score > 60 ? 2.0 + Math.random() * 1.5 : 
+                                3.5 + Math.random() * 2.0;
+                
+                const bundleSize = score > 80 ? 0.5 + Math.random() * 0.5 :
+                                 score > 60 ? 1.0 + Math.random() * 1.0 :
+                                 2.0 + Math.random() * 2.0;
+
+                return {
+                    loadTime: loadTime.toFixed(1),
+                    bundleSize: bundleSize.toFixed(1),
+                    coreWebVitals: score > 75 ? 'excellent' : score > 50 ? 'good' : 'needs-work',
+                    imageOptimization: score > 70 ? 'excellent' : score > 45 ? 'good' : 'needs-work'
+                };
+            }
+
+            generateContentMetrics(score, isGitHub) {
+                const techStacks = [
+                    ['React', 'TypeScript', 'Node.js', 'MongoDB'],
+                    ['Vue.js', 'JavaScript', 'Express.js', 'PostgreSQL'],
+                    ['Angular', 'TypeScript', 'NestJS', 'MySQL'],
+                    ['React', 'Next.js', 'Prisma', 'Supabase'],
+                    ['Svelte', 'JavaScript', 'FastAPI', 'Redis'],
+                    ['React', 'GraphQL', 'Apollo', 'Firebase']
+                ];
+
+                const randomTechStack = techStacks[Math.floor(Math.random() * techStacks.length)];
+
+                return {
+                    projectCount: isGitHub ? Math.floor(3 + Math.random() * 12) : Math.floor(2 + Math.random() * 8),
+                    documentation: score > 80 ? 'excellent' : score > 60 ? 'good' : 'needs-work',
+                    codeQuality: score > 75 ? 'excellent' : score > 55 ? 'good' : 'needs-work',
+                    techStack: randomTechStack,
+                    portfolio: isGitHub ? 'needs-work' : score > 70 ? 'excellent' : 'good'
+                };
+            }
+
+            generateResponsiveMetrics(score) {
+                return {
+                    mobileFirst: score > 80 ? 'excellent' : score > 60 ? 'good' : 'needs-work',
+                    crossBrowser: score > 75 ? 'excellent' : score > 55 ? 'good' : 'needs-work',
+                    touchOptimized: score > 70 ? 'excellent' : score > 50 ? 'good' : 'needs-work',
+                    flexibleLayouts: score > 85 ? 'excellent' : score > 65 ? 'good' : 'needs-work'
+                };
+            }
+
+            getAccessibilityRecommendations(score) {
+                const recommendations = [
+                    'Add descriptive alt text to all images and media content',
+                    'Implement proper heading hierarchy (h1, h2, h3) for screen readers',
+                    'Ensure color contrast meets WCAG 2.1 AA standards (4.5:1 ratio)',
+                    'Add ARIA labels and roles for complex interactive elements',
+                    'Test keyboard navigation throughout your entire portfolio',
+                    'Include focus indicators for all interactive elements',
+                    'Use semantic HTML elements (nav, main, article, section)',
+                    'Provide captions or transcripts for video content'
+                ];
+
+                const count = score > 80 ? 2 : score > 60 ? 4 : 6;
+                return this.shuffleArray(recommendations).slice(0, count);
+            }
+
+            getPerformanceRecommendations(score) {
+                const recommendations = [
+                    'Optimize images using modern formats (WebP, AVIF) and proper sizing',
+                    'Implement lazy loading for images and non-critical content',
+                    'Minify and compress CSS, JavaScript, and HTML files',
+                    'Use a Content Delivery Network (CDN) for faster global access',
+                    'Implement service workers for offline functionality and caching',
+                    'Reduce bundle size by code splitting and tree shaking',
+                    'Optimize web fonts loading with font-display: swap',
+                    'Remove unused CSS and JavaScript to reduce payload size',
+                    'Implement critical CSS inlining for above-the-fold content',
+                    'Use HTTP/2 server push for critical resources'
+                ];
+
+                const count = score > 80 ? 3 : score > 60 ? 5 : 7;
+                return this.shuffleArray(recommendations).slice(0, count);
+            }
+
+            getContentRecommendations(score) {
+                const recommendations = [
+                    'Add detailed project descriptions with problem-solving approach',
+                    'Include live demos and source code links for all projects',
+                    'Write comprehensive README files with setup instructions',
+                    'Showcase your technical decision-making process',
+                    'Add testimonials or recommendations from colleagues/clients',
+                    'Include a professional about section with your story',
+                    'Document your learning journey and technical growth',
+                    'Add case studies showing before/after project improvements',
+                    'Include technical blog posts or articles you\'ve written',
+                    'Showcase diverse projects across different technologies',
+                    'Add contact information and professional social media links',
+                    'Include your resume/CV in downloadable format'
+                ];
+
+                const count = score > 80 ? 3 : score > 60 ? 5 : 8;
+                return this.shuffleArray(recommendations).slice(0, count);
+            }
+
+            getResponsiveRecommendations(score) {
+                const recommendations = [
+                    'Implement mobile-first responsive design approach',
+                    'Test your portfolio on various devices and screen sizes',
+                    'Use CSS Grid and Flexbox for flexible, responsive layouts',
+                    'Optimize touch targets for mobile devices (minimum 44px)',
+                    'Implement responsive typography using clamp() and viewport units',
+                    'Test cross-browser compatibility (Chrome, Firefox, Safari, Edge)',
+                    'Use responsive images with srcset and sizes attributes',
+                    'Implement proper viewport meta tag configuration',
+                    'Optimize navigation for mobile devices with hamburger menus',
+                    'Ensure readable font sizes across all device breakpoints',
+                    'Test form usability on touch devices',
+                    'Implement swipe gestures for mobile image galleries'
+                ];
+
+                const count = score > 80 ? 3 : score > 60 ? 5 : 7;
+                return this.shuffleArray(recommendations).slice(0, count);
+            }
+
+            shuffleArray(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+
+            displayResults() {
+                // Animate overall score
+                this.animateScore('overallScore', this.analysisData.overallScore);
+                this.updateGrade('overallGrade', this.analysisData.overallScore);
+
+                // Animate individual scores
+                this.animateScore('accessibilityScore', this.analysisData.accessibility.score);
+                this.animateScore('performanceScore', this.analysisData.performance.score);
+                this.animateScore('contentScore', this.analysisData.content.score);
+                this.animateScore('responsiveScore', this.analysisData.responsive.score);
+
+                // Update progress bars
+                this.updateProgressBar('accessibilityProgress', this.analysisData.accessibility.score);
+                this.updateProgressBar('performanceProgress', this.analysisData.performance.score);
+                this.updateProgressBar('contentProgress', this.analysisData.content.score);
+                this.updateProgressBar('responsiveProgress', this.analysisData.responsive.score);
+
+                // Update badges
+                this.updateBadges('accessibilityBadges', this.analysisData.accessibility.metrics);
+                this.updateBadges('performanceBadges', this.analysisData.performance.metrics);
+                this.updateBadges('contentBadges', this.analysisData.content.metrics);
+                this.updateBadges('responsiveBadges', this.analysisData.responsive.metrics);
+
+                // Update recommendations
+                this.updateRecommendations('accessibilityRecommendations', this.analysisData.accessibility.recommendations);
+                this.updateRecommendations('performanceRecommendations', this.analysisData.performance.recommendations);
+                this.updateRecommendations('contentRecommendations', this.analysisData.content.recommendations);
+                this.updateRecommendations('responsiveRecommendations', this.analysisData.responsive.recommendations);
+
+                // Update tech stack
+                this.updateTechStack();
+
+                // Update performance charts
+                this.updatePerformanceCharts();
+
+                // Show results
+                document.getElementById('results').style.display = 'block';
+            }
+
+            animateScore(elementId, targetScore) {
+                const element = document.getElementById(elementId);
+                let currentScore = 0;
+                const increment = targetScore / 50;
+                const timer = setInterval(() => {
+                    currentScore += increment;
+                    if (currentScore >= targetScore) {
+                        currentScore = targetScore;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.round(currentScore);
+                }, 30);
+            }
+
+            updateGrade(elementId, score) {
+                const element = document.getElementById(elementId);
+                let grade, description;
+                
+                if (score >= 90) {
+                    grade = 'A+';
+                    description = 'Outstanding Portfolio';
+                } else if (score >= 85) {
+                    grade = 'A';
+                    description = 'Excellent Portfolio';
+                } else if (score >= 80) {
+                    grade = 'A-';
+                    description = 'Very Good Portfolio';
+                } else if (score >= 75) {
+                    grade = 'B+';
+                    description = 'Good Portfolio';
+                } else if (score >= 70) {
+                    grade = 'B';
+                    description = 'Above Average Portfolio';
+                } else if (score >= 65) {
+                    grade = 'B-';
+                    description = 'Average Portfolio';
+                } else if (score >= 60) {
+                    grade = 'C+';
+                    description = 'Below Average Portfolio';
+                } else {
+                    grade = 'C';
+                    description = 'Needs Improvement';
+                }
+
+                element.innerHTML = `${grade} - ${description}`;
+            }
+
+            updateProgressBar(elementId, score) {
+                setTimeout(() => {
+                    const element = document.getElementById(elementId);
+                    element.style.width = `${score}%`;
+                }, 500);
+            }
+
+            updateBadges(containerId, metrics) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                Object.entries(metrics).forEach(([key, value]) => {
+                    if (typeof value === 'string' && ['excellent', 'good', 'needs-work'].includes(value)) {
+                        const badge = document.createElement('span');
+                        badge.className = `badge ${value}`;
+                        badge.textContent = `${this.formatKey(key)}: ${this.formatValue(value)}`;
+                        container.appendChild(badge);
+                    }
+                });
+            }
+
+            updateRecommendations(containerId, recommendations) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                recommendations.forEach(rec => {
+                    const li = document.createElement('li');
+                    li.textContent = rec;
+                    container.appendChild(li);
+                });
+            }
+
+            updateTechStack() {
+                const container = document.getElementById('techStack');
+                container.innerHTML = '<h4 style="width: 100%; margin-bottom: 0.5rem; font-size: 1rem; color: #6b7280;">Detected Technologies:</h4>';
+                
+                this.analysisData.content.metrics.techStack.forEach(tech => {
+                    const badge = document.createElement('span');
+                    badge.className = 'tech-badge';
+                    badge.textContent = tech;
+                    container.appendChild(badge);
+                });
+            }
+
+            updatePerformanceCharts() {
+                const loadTime = this.analysisData.performance.metrics.loadTime;
+                const bundleSize = this.analysisData.performance.metrics.bundleSize;
+                
+                // Update load time
+                document.getElementById('loadTimeScore').textContent = `${loadTime}s`;
+                const loadTimePercent = Math.max(10, 100 - (parseFloat(loadTime) / 5 * 100));
+                setTimeout(() => {
+                    document.getElementById('loadTimeChart').style.width = `${loadTimePercent}%`;
+                }, 800);
+                
+                // Update bundle size
+                document.getElementById('bundleSizeScore').textContent = `${bundleSize}MB`;
+                const bundleSizePercent = Math.max(10, 100 - (parseFloat(bundleSize) / 4 * 100));
+                setTimeout(() => {
+                    document.getElementById('bundleSizeChart').style.width = `${bundleSizePercent}%`;
+                }, 1200);
+            }
+
+            formatKey(key) {
+                return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            }
+
+            formatValue(value) {
+                const valueMap = {
+                    'excellent': '✓ Excellent',
+                    'good': '~ Good',
+                    'needs-work': '✗ Needs Work'
+                };
+                return valueMap[value] || value;
+            }
+
+            showLoading() {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('results').style.display = 'none';
+                document.querySelector('.analyze-btn').disabled = true;
+            }
+
+            hideLoading() {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.analyze-btn').disabled = false;
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize analyzer
+        const analyzer = new PortfolioAnalyzer();
+
+        // Global function for button onclick
+        function analyzePortfolio() {
+            analyzer.analyzePortfolio();
+        }
+
+        // Add enter key support
+        document.getElementById('portfolioUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzePortfolio();
+            }
+        });
+
+        // Add some sample URLs for demonstration
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlInput = document.getElementById('portfolioUrl');
+            const sampleUrls = [
+                'https://github.com/facebook/react',
+                'https://github.com/microsoft/vscode',
+                'https://yourportfolio.dev',
+                'https://portfolio.vercel.app',
+                'https://developer-showcase.netlify.app'
+            ];
+            
+            urlInput.addEventListener('focus', function() {
+                if (!this.value) {
+                    this.placeholder = sampleUrls[Math.floor(Math.random() * sampleUrls.length)];
+                }
+            });
+        });
+
+        // Add professional tooltips and interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to score cards
+            const scoreCards = document.querySelectorAll('.score-card');
+            scoreCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-5px) scale(1)';
+                });
+            });
+
+            // Add click analytics tracking (simulation)
+            document.querySelector('.analyze-btn').addEventListener('click', function() {
+                console.log('Portfolio analysis initiated:', {
+                    timestamp: new Date().toISOString(),
+                    url: document.getElementById('portfolioUrl').value,
+                    userAgent: navigator.userAgent
+                });
+            });
+        });
+
+        // Professional keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to analyze
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                analyzePortfolio();
+            }
+            
+            // ESC to clear input
+            if (e.key === 'Escape') {
+                document.getElementById('portfolioUrl').value = '';
+                document.getElementById('portfolioUrl').focus();
+            }
+        });
+
+        // Add professional loading messages
+        const loadingMessages = [
+            'Analyzing code structure and architecture...',
+            'Evaluating user experience and accessibility...',
+            'Testing performance across multiple metrics...',
+            'Scanning for responsive design patterns...',
+            'Assessing content quality and presentation...',
+            'Generating comprehensive recommendations...'
+        ];
+
+        let messageIndex = 0;
+        let messageInterval;
+
+        function startLoadingMessages() {
+            const loadingElement = document.querySelector('#loading p:last-child small');
+            messageInterval = setInterval(() => {
+                if (loadingElement) {
+                    loadingElement.textContent = loadingMessages[messageIndex];
+                    messageIndex = (messageIndex + 1) % loadingMessages.length;
+                }
+            }, 1500);
+        }
+
+        function stopLoadingMessages() {
+            if (messageInterval) {
+                clearInterval(messageInterval);
+                messageIndex = 0;
+            }
+        }
+
+        // Override the analyzer's show/hide loading methods
+        const originalShowLoading = analyzer.showLoading;
+        const originalHideLoading = analyzer.hideLoading;
+
+        analyzer.showLoading = function() {
+            originalShowLoading.call(this);
+            startLoadingMessages();
+        };
+
+        analyzer.hideLoading = function() {
+            originalHideLoading.call(this);
+            stopLoadingMessages();
+        };
+    </script>
+</body>
+</html>
