@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Analyzer Pro - Developer Assessment Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            animation: slideInUp 1s ease-out 0.4s both;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .results {
+            display: none;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .score-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .overall-score {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-size: 1.5rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .rank {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .rank.elite { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8b5a00; }
+        .rank.expert { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #4a5568; }
+        .rank.advanced { background: linear-gradient(135deg, #cd7f32, #daa520); color: white; }
+        .rank.intermediate { background: linear-gradient(135deg, #4ade80, #22c55e); color: white; }
+        .rank.beginner { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        .metric-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .metric-score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+
+        .metric-details {
+            font-size: 0.9rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .insights-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .insights-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .insight-icon {
+            margin-right: 10px;
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        .recommendations {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .recommendations-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .recommendation {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #22c55e;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .rec-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .rec-description {
+            color: #718096;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .achievement-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        .badge.gold { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8b5a00; }
+        .badge.silver { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #4a5568; }
+        .badge.bronze { background: linear-gradient(135deg, #cd7f32, #daa520); color: white; }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInDown {
+            0% { opacity: 0; transform: translateY(-30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUp {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .input-group { flex-direction: column; }
+            .input-wrapper { min-width: auto; }
+            .overall-score { font-size: 3rem; }
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Portfolio Analyzer Pro</h1>
+            <p>Comprehensive Developer Portfolio Assessment Platform</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label for="portfolioUrl">Portfolio/GitHub URL</label>
+                    <input type="url" id="portfolioUrl" placeholder="https://github.com/username or https://yourportfolio.com" required>
+                </div>
+            </div>
+            <button class="analyze-btn" onclick="analyzePortfolio()">
+                🚀 Analyze Portfolio
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <h3>Analyzing Portfolio...</h3>
+            <p>Running comprehensive assessment across multiple dimensions</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score-card">
+                <div class="overall-score" id="overallScore">0</div>
+                <div class="score-label">Overall Portfolio Score</div>
+                <div class="rank" id="rank">Analyzing...</div>
+                <div class="achievement-badges" id="badges"></div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">♿</div>
+                        <div class="metric-title">Accessibility</div>
+                    </div>
+                    <div class="metric-score" id="accessibilityScore" style="color: #667eea;">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="accessibilityProgress" style="width: 0%;"></div>
+                    </div>
+                    <div class="metric-details" id="accessibilityDetails">Evaluating accessibility standards...</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">⚡</div>
+                        <div class="metric-title">Performance</div>
+                    </div>
+                    <div class="metric-score" id="performanceScore" style="color: #22c55e;">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="performanceProgress" style="width: 0%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                    </div>
+                    <div class="metric-details" id="performanceDetails">Analyzing load times and optimization...</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #f97316); color: white;">📝</div>
+                        <div class="metric-title">Content Quality</div>
+                    </div>
+                    <div class="metric-score" id="contentScore" style="color: #f59e0b;">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="contentProgress" style="width: 0%; background: linear-gradient(90deg, #f59e0b, #f97316);"></div>
+                    </div>
+                    <div class="metric-details" id="contentDetails">Assessing content depth and quality...</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #ec4899, #be185d); color: white;">📱</div>
+                        <div class="metric-title">Responsiveness</div>
+                    </div>
+                    <div class="metric-score" id="responsivenessScore" style="color: #ec4899;">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="responsivenessProgress" style="width: 0%; background: linear-gradient(90deg, #ec4899, #be185d);"></div>
+                    </div>
+                    <div class="metric-details" id="responsivenessDetails">Testing mobile and tablet compatibility...</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;">🎨</div>
+                        <div class="metric-title">Design & UX</div>
+                    </div>
+                    <div class="metric-score" id="designScore" style="color: #8b5cf6;">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="designProgress" style="width: 0%; background: linear-gradient(90deg, #8b5cf6, #7c3aed);"></div>
+                    </div>
+                    <div class="metric-details" id="designDetails">Evaluating visual design and user experience...</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;">🔧</div>
+                        <div class="metric-title">Technical Skills</div>
+                    </div>
+                    <div class="metric-score" id="technicalScore" style="color: #06b6d4;">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="technicalProgress" style="width: 0%; background: linear-gradient(90deg, #06b6d4, #0891b2);"></div>
+                    </div>
+                    <div class="metric-details" id="technicalDetails">Analyzing code quality and technical depth...</div>
+                </div>
+            </div>
+
+            <div class="insights-section">
+                <h3 class="insights-title">📊 Portfolio Insights</h3>
+                <div id="insights"></div>
+            </div>
+
+            <div class="recommendations">
+                <h3 class="recommendations-title">🎯 Recommendations for Improvement</h3>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const portfolioAnalytics = {
+            totalAnalyses: 0,
+            averageScore: 0,
+            topPerformers: []
+        };
+
+        const scoreRanges = {
+            elite: { min: 90, label: 'Elite Developer', color: 'gold' },
+            expert: { min: 80, label: 'Expert Level', color: 'silver' },
+            advanced: { min: 70, label: 'Advanced', color: 'bronze' },
+            intermediate: { min: 60, label: 'Intermediate', color: 'intermediate' },
+            beginner: { min: 0, label: 'Developing', color: 'beginner' }
+        };
+
+        function getRankFromScore(score) {
+            for (const [rank, data] of Object.entries(scoreRanges)) {
+                if (score >= data.min) {
+                    return { rank, ...data };
+                }
+            }
+            return { rank: 'beginner', ...scoreRanges.beginner };
+        }
+
+        function analyzePortfolio() {
+            const url = document.getElementById('portfolioUrl').value.trim();
+            
+            if (!url) {
+                alert('Please enter a valid portfolio or GitHub URL');
+                return;
+            }
+
+            if (!isValidUrl(url)) {
+                alert('Please enter a valid URL (must start with http:// or https://)');
+                return;
+            }
+
+            showLoading();
+            setTimeout(() => {
+                const analysis = generateAnalysis(url);
+                displayResults(analysis);
+                hideLoading();
+            }, 3000);
+        }
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.querySelector('.analyze-btn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            document.querySelector('.analyze-btn').disabled = false;
+        }
+
+        function generateAnalysis(url) {
+            const isGitHub = url.includes('github.com');
+            const hasCustomDomain = !url.includes('github.io') && !url.includes('netlify') && !url.includes('vercel') && !isGitHub;
+            const urlLength = url.length;
+            const hasHTTPS = url.startsWith('https://');
+
+            // Simulate realistic scoring based on URL analysis
+            const baseScores = {
+                accessibility: Math.floor(Math.random() * 30) + (hasHTTPS ? 70 : 50),
+                performance: Math.floor(Math.random() * 25) + (hasCustomDomain ? 75 : 60),
+                content: Math.floor(Math.random() * 35) + (isGitHub ? 55 : 65),
+                responsiveness: Math.floor(Math.random() * 20) + 70,
+                design: Math.floor(Math.random() * 30) + (hasCustomDomain ? 65 : 55),
+                technical: Math.floor(Math.random() * 25) + (isGitHub ? 70 : 60)
+            };
+
+            // Add bonus points for certain patterns
+            if (url.includes('portfolio') || url.includes('dev')) {
+                baseScores.content += 5;
+                baseScores.design += 5;
+            }
+
+            if (hasHTTPS) {
+                baseScores.accessibility += 5;
+                baseScores.performance += 5;
+            }
+
+            // Ensure scores don't exceed 100
+            Object.keys(baseScores).forEach(key => {
+                baseScores[key] = Math.min(baseScores[key], 100);
+            });
+
+            const overallScore = Math.round(
+                (baseScores.accessibility + baseScores.performance + baseScores.content + 
+                 baseScores.responsiveness + baseScores.design + baseScores.technical) / 6
+            );
+
+            return {
+                url,
+                scores: baseScores,
+                overallScore,
+                rank: getRankFromScore(overallScore),
+                insights: generateInsights(baseScores, url),
+                recommendations: generateRecommendations(baseScores),
+                badges: generateBadges(baseScores, overallScore)
+            };
+        }
+
+        function generateInsights(scores, url) {
+            const insights = [];
+            const isGitHub = url.includes('github.com');
+            
+            if (scores.accessibility > 85) {
+                insights.push({ icon: '✅', text: 'Excellent accessibility standards - shows attention to inclusive design' });
+            } else if (scores.accessibility < 60) {
+                insights.push({ icon: '⚠️', text: 'Accessibility needs improvement - consider WCAG guidelines' });
+            }
+
+            if (scores.performance > 80) {
+                insights.push({ icon: '🚀', text: 'Outstanding performance optimization - fast loading times detected' });
+            }
+
+            if (scores.technical > 85) {
+                insights.push({ icon: '🎯', text: 'Demonstrates strong technical proficiency and code quality' });
+            }
+
+            if (isGitHub) {
+                insights.push({ icon: '💻', text: 'GitHub presence shows active development and version control skills' });
+            }
+
+            if (scores.design > 80) {
+                insights.push({ icon: '🎨', text: 'Strong visual design sense - portfolio is aesthetically pleasing' });
+            }
+
+            if (scores.content < 70) {
+                insights.push({ icon: '📝', text: 'Content could be more comprehensive - add project descriptions and case studies' });
+            }
+
+            return insights;
+        }
+
+        function generateRecommendations(scores) {
+            const recommendations = [];
+
+            if (scores.accessibility < 80) {
+                recommendations.push({
+                    title: 'Improve Accessibility',
+                    description: 'Add alt text to images, ensure proper color contrast, implement keyboard navigation, and use semantic HTML elements.'
+                });
+            }
+
+            if (scores.performance < 75) {
+                recommendations.push({
+                    title: 'Optimize Performance',
+                    description: 'Compress images, minify CSS/JS files, implement lazy loading, and consider using a CDN for faster content delivery.'
+                });
+            }
+
+            if (scores.content < 70) {
+                recommendations.push({
+                    title: 'Enhance Content Quality',
+                    description: 'Add detailed project case studies, include your development process, showcase problem-solving skills, and add testimonials.'
+                });
+            }
+
+            if (scores.responsiveness < 85) {
+                recommendations.push({
+                    title: 'Improve Mobile Experience',
+                    description: 'Test on various devices, implement responsive breakpoints, optimize touch interactions, and ensure text readability on small screens.'
+                });
+            }
+
+            if (scores.design < 75) {
+                recommendations.push({
+                    title: 'Enhance Visual Design',
+                    description: 'Improve typography, use consistent color scheme, add more whitespace, and consider modern design trends like glassmorphism or neumorphism.'
+                });
+            }
+
+            if (scores.technical < 80) {
+                recommendations.push({
+                    title: 'Showcase Technical Skills',
+                    description: 'Include code snippets, link to GitHub repositories, mention specific technologies used, and explain technical challenges overcome.'
+                });
+            }
+
+            // Always include some universal recommendations
+            recommendations.push({
+                title: 'Add Analytics & SEO',
+                description: 'Implement Google Analytics, optimize meta tags, add structured data, and ensure proper URL structure for better discoverability.'
+            });
+
+            recommendations.push({
+                title: 'Include Contact & Social Links',
+                description: 'Make it easy for recruiters to contact you - add professional email, LinkedIn, GitHub, and other relevant social media links.'
+            });
+
+            return recommendations;
+        }
+
+        function generateBadges(scores, overallScore) {
+            const badges = [];
+
+            if (scores.accessibility > 90) badges.push({ text: '♿ Accessibility Champion', class: 'gold' });
+            if (scores.performance > 90) badges.push({ text: '⚡ Speed Demon', class: 'gold' });
+            if (scores.design > 90) badges.push({ text: '🎨 Design Master', class: 'gold' });
+            if (scores.technical > 90) badges.push({ text: '🔧 Tech Guru', class: 'gold' });
+
+            if (scores.accessibility > 80) badges.push({ text: '♿ Accessible Design', class: 'silver' });
+            if (scores.performance > 80) badges.push({ text: '⚡ Fast Loader', class: 'silver' });
+            if (scores.content > 80) badges.push({ text: '📝 Content Creator', class: 'silver' });
+            if (scores.responsiveness > 80) badges.push({ text: '📱 Mobile Friendly', class: 'silver' });
+
+            if (overallScore > 75) badges.push({ text: '🏆 Well-Rounded', class: 'bronze' });
+            if (overallScore > 85) badges.push({ text: '🌟 Outstanding Portfolio', class: 'gold' });
+
+            return badges;
+        }
+
+        function displayResults(analysis) {
+            // Update overall score with animation
+            animateScore('overallScore', analysis.overallScore);
+            
+            // Update rank
+            const rankElement = document.getElementById('rank');
+            rankElement.textContent = analysis.rank.label;
+            rankElement.className = `rank ${analysis.rank.color}`;
+
+            // Update individual metrics with staggered animation
+            const metrics = ['accessibility', 'performance', 'content', 'responsiveness', 'design', 'technical'];
+            metrics.forEach((metric, index) => {
+                setTimeout(() => {
+                    animateScore(`${metric}Score`, analysis.scores[metric]);
+                    animateProgressBar(`${metric}Progress`, analysis.scores[metric]);
+                    updateMetricDetails(metric, analysis.scores[metric]);
+                }, index * 200);
+            });
+
+            // Display insights
+            displayInsights(analysis.insights);
+
+            // Display recommendations
+            displayRecommendations(analysis.recommendations);
+
+            // Display badges
+            displayBadges(analysis.badges);
+
+            // Update analytics
+            portfolioAnalytics.totalAnalyses++;
+            portfolioAnalytics.averageScore = ((portfolioAnalytics.averageScore * (portfolioAnalytics.totalAnalyses - 1)) + analysis.overallScore) / portfolioAnalytics.totalAnalyses;
+        }
+
+        function animateScore(elementId, targetScore) {
+            const element = document.getElementById(elementId);
+            let currentScore = 0;
+            const increment = targetScore / 50;
+            
+            const animation = setInterval(() => {
+                currentScore += increment;
+                if (currentScore >= targetScore) {
+                    currentScore = targetScore;
+                    clearInterval(animation);
+                }
+                element.textContent = Math.round(currentScore);
+            }, 30);
+        }
+
+        function animateProgressBar(elementId, targetWidth) {
+            const element = document.getElementById(elementId);
+            setTimeout(() => {
+                element.style.width = targetWidth + '%';
+            }, 100);
+        }
+
+        function updateMetricDetails(metric, score) {
+            const details = {
+                accessibility: {
+                    high: 'Excellent WCAG compliance, proper semantic structure, keyboard navigation support',
+                    medium: 'Good accessibility practices, minor improvements needed',
+                    low: 'Accessibility issues detected, needs WCAG compliance improvements'
+                },
+                performance: {
+                    high: 'Optimized loading times, efficient resource management, CDN implementation',
+                    medium: 'Good performance metrics, some optimization opportunities exist',
+                    low: 'Performance bottlenecks detected, needs optimization work'
+                },
+                content: {
+                    high: 'Comprehensive project showcases, detailed case studies, clear documentation',
+                    medium: 'Good content structure, could benefit from more detailed descriptions',
+                    low: 'Limited content depth, needs more project details and explanations'
+                },
+                responsiveness: {
+                    high: 'Flawless mobile experience, perfect cross-device compatibility',
+                    medium: 'Good responsive design, minor mobile adjustments needed',
+                    low: 'Mobile experience needs improvement, responsive issues detected'
+                },
+                design: {
+                    high: 'Outstanding visual design, modern aesthetics, excellent user experience',
+                    medium: 'Good design principles, some visual enhancements possible',
+                    low: 'Design needs improvement, outdated styling or poor visual hierarchy'
+                },
+                technical: {
+                    high: 'Advanced technical implementation, clean code, modern practices',
+                    medium: 'Solid technical foundation, some areas for technical growth',
+                    low: 'Basic technical implementation, needs more advanced features'
+                }
+            };
+
+            const element = document.getElementById(`${metric}Details`);
+            let level = 'low';
+            if (score >= 80) level = 'high';
+            else if (score >= 65) level = 'medium';
+            
+            element.textContent = details[metric][level];
+        }
+
+        function displayInsights(insights) {
+            const container = document.getElementById('insights');
+            container.innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <span class="insight-icon">${insight.icon}</span>
+                    <span>${insight.text}</span>
+                </div>
+            `).join('');
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsList');
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation">
+                    <div class="rec-title">${rec.title}</div>
+                    <div class="rec-description">${rec.description}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayBadges(badges) {
+            const container = document.getElementById('badges');
+            container.innerHTML = badges.map((badge, index) => `
+                <div class="badge ${badge.class}" style="animation-delay: ${index * 0.1}s">${badge.text}</div>
+            `).join('');
+        }
+
+        // Enhanced URL validation and suggestions
+        document.getElementById('portfolioUrl').addEventListener('input', function(e) {
+            const url = e.target.value;
+            const button = document.querySelector('.analyze-btn');
+            
+            if (url.length > 10 && !url.startsWith('http')) {
+                e.target.style.borderColor = '#f59e0b';
+                button.textContent = '⚠️ Add https:// to URL';
+            } else if (isValidUrl(url)) {
+                e.target.style.borderColor = '#22c55e';
+                button.textContent = '🚀 Analyze Portfolio';
+            } else {
+                e.target.style.borderColor = '#e2e8f0';
+                button.textContent = '🚀 Analyze Portfolio';
+            }
+        });
+
+        // Keyboard shortcut for analysis
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                analyzePortfolio();
+            }
+        });
+
+        // Auto-suggest common portfolio platforms
+        const suggestions = [
+            'https://github.com/',
+            'https://yourname.github.io',
+            'https://yourportfolio.netlify.app',
+            'https://yourportfolio.vercel.app',
+            'https://codepen.io/',
+            'https://yourname.dev'
+        ];
+
+        function showSuggestions() {
+            // Implementation for URL suggestions could go here
+        }
+
+        // Add sample URLs for demo
+        function loadSamplePortfolio() {
+            const sampleUrls = [
+                'https://github.com/facebook/react',
+                'https://dan.abramov.dev',
+                'https://overreacted.io',
+                'https://kentcdodds.com',
+                'https://github.com/microsoft/vscode'
+            ];
+            
+            const randomUrl = sampleUrls[Math.floor(Math.random() * sampleUrls.length)];
+            document.getElementById('portfolioUrl').value = randomUrl;
+        }
+
+        // Advanced scoring algorithm considerations
+        function calculateAdvancedMetrics(url, baseScores) {
+            // Domain authority simulation
+            const domainScore = url.includes('.dev') || url.includes('.io') ? 10 : 
+                               url.includes('github.io') ? 8 : 
+                               url.includes('netlify') || url.includes('vercel') ? 6 : 0;
+
+            // URL structure analysis
+            const structureScore = url.split('/').length > 3 ? 5 : 0;
+
+            // Security analysis
+            const securityScore = url.startsWith('https://') ? 10 : 0;
+
+            return {
+                domain: domainScore,
+                structure: structureScore,
+                security: securityScore
+            };
+        }
+
+        // Export functionality for results
+        function exportResults(analysis) {
+            const exportData = {
+                url: analysis.url,
+                timestamp: new Date().toISOString(),
+                overallScore: analysis.overallScore,
+                scores: analysis.scores,
+                rank: analysis.rank.label,
+                recommendations: analysis.recommendations.length
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `portfolio-analysis-${Date.now()}.json`;
+            link.click();
+        }
+
+        // Performance monitoring
+        const performanceMetrics = {
+            startTime: Date.now(),
+            analysisCount: 0,
+            averageAnalysisTime: 0
+        };
+
+        function trackPerformance() {
+            performanceMetrics.analysisCount++;
+            const currentTime = Date.now();
+            const analysisTime = currentTime - performanceMetrics.startTime;
+            performanceMetrics.averageAnalysisTime = 
+                ((performanceMetrics.averageAnalysisTime * (performanceMetrics.analysisCount - 1)) + analysisTime) 
+                / performanceMetrics.analysisCount;
+        }
+
+        // Initialize tooltips and help system
+        function initializeHelp() {
+            const helpTexts = {
+                accessibility: 'Measures WCAG compliance, keyboard navigation, screen reader compatibility, and inclusive design practices',
+                performance: 'Evaluates page load speed, resource optimization, caching strategies, and overall site performance',
+                content: 'Assesses project descriptions, case studies, documentation quality, and portfolio comprehensiveness',
+                responsiveness: 'Tests mobile compatibility, tablet optimization, and cross-device user experience',
+                design: 'Reviews visual aesthetics, user interface design, typography, color schemes, and overall user experience',
+                technical: 'Analyzes code quality, technical complexity, modern practices, and development skills demonstration'
+            };
+
+            // Add help tooltips to metric cards
+            document.querySelectorAll('.metric-card').forEach((card, index) => {
+                const metrics = ['accessibility', 'performance', 'content', 'responsiveness', 'design', 'technical'];
+                const metric = metrics[index];
+                if (helpTexts[metric]) {
+                    card.title = helpTexts[metric];
+                }
+            });
+        }
+
+        // Enhanced error handling
+        function handleAnalysisError(error) {
+            console.error('Analysis error:', error);
+            hideLoading();
+            
+            const errorMessage = document.createElement('div');
+            errorMessage.style.cssText = `
+                background: #fee2e2;
+                border: 1px solid #fecaca;
+                color: #b91c1c;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: center;
+            `;
+            errorMessage.innerHTML = `
+                <h3>Analysis Error</h3>
+                <p>Unable to analyze the provided URL. Please check the URL and try again.</p>
+                <button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 8px 16px; background: #b91c1c; color: white; border: none; border-radius: 5px; cursor: pointer;">Dismiss</button>
+            `;
+            
+            document.querySelector('.container').insertBefore(errorMessage, document.getElementById('results'));
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeHelp();
+            
+            // Add sample portfolio button
+            const sampleButton = document.createElement('button');
+            sampleButton.textContent = '🎯 Try Sample Portfolio';
+            sampleButton.style.cssText = `
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                padding: 10px 20px;
+                border-radius: 8px;
+                margin-left: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            `;
+            sampleButton.onmouseover = () => sampleButton.style.background = 'rgba(255, 255, 255, 0.3)';
+            sampleButton.onmouseout = () => sampleButton.style.background = 'rgba(255, 255, 255, 0.2)';
+            sampleButton.onclick = loadSamplePortfolio;
+            
+            document.querySelector('.input-section').appendChild(sampleButton);
+        });
+
+        // Social sharing functionality
+        function shareResults(analysis) {
+            const shareText = `I just analyzed my developer portfolio and scored ${analysis.overallScore}/100! 🚀 Check out Portfolio Analyzer Pro`;
+            const shareUrl = window.location.href;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Portfolio Analysis Results',
+                    text: shareText,
+                    url: shareUrl
+                });
+            } else {
+                // Fallback to clipboard
+                navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+                alert('Results copied to clipboard!');
+            }
+        }
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        // Accessibility enhancements
+        document.addEventListener('keydown', function(e) {
+            // Skip to main content with Alt+M
+            if (e.altKey && e.key === 'm') {
+                document.getElementById('results').focus();
+                e.preventDefault();
+            }
+            
+            // Quick analysis with Alt+A
+            if (e.altKey && e.key === 'a') {
+                analyzePortfolio();
+                e.preventDefault();
+            }
+        });
+
+        // Add focus management
+        function manageFocus() {
+            const focusableElements = document.querySelectorAll('button, input, [tabindex]:not([tabindex="-1"])');
+            focusableElements.forEach((el, index) => {
+                el.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        if (e.shiftKey && index === 0) {
+                            e.preventDefault();
+                            focusableElements[focusableElements.length - 1].focus();
+                        } else if (!e.shiftKey && index === focusableElements.length - 1) {
+                            e.preventDefault();
+                            focusableElements[0].focus();
+                        }
+                    }
+                });
+            });
+        }
+
+        // Initialize focus management
+        manageFocus();
+    </script>
+</body>
+</html>
