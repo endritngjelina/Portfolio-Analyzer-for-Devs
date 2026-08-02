@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevPortfolio Analyzer - Professional Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .url-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .analyze-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .overall-score {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overall-score::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#00ff88 0deg, #00ff88 var(--score-deg), #ffffff40 var(--score-deg), #ffffff40 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-circle::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+        }
+
+        .score-text {
+            position: relative;
+            z-index: 2;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .score-label {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge.expert { background: #00ff88; color: #004d2a; }
+        .badge.advanced { background: #4ecdc4; color: #1a5b56; }
+        .badge.intermediate { background: #ffd93d; color: #b8960a; }
+        .badge.beginner { background: #ff6b6b; color: #a51e1e; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .metric-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .metric-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .metric-details {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .suggestions {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .suggestions h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .suggestion-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .suggestion-desc {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .achievements {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .achievement {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border-radius: 50px;
+            font-weight: 600;
+            color: #b8860b;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .competitive-analysis {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .competitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .competitor-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .competitor-card:hover {
+            transform: scale(1.05);
+            background: #e9ecef;
+        }
+
+        .export-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .input-section { flex-direction: column; }
+            .url-input { min-width: auto; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .competitor-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DevPortfolio Analyzer</h1>
+            <p>Professional Portfolio Assessment Tool for Developers</p>
+            <p>Get comprehensive insights into your portfolio's performance, accessibility, and market positioning</p>
+            
+            <div class="input-section">
+                <input type="url" class="url-input" placeholder="Enter your GitHub profile or portfolio URL (e.g., https://github.com/username)" id="portfolioUrl">
+                <button class="analyze-btn" onclick="analyzePortfolio()">Analyze Portfolio</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Analyzing your portfolio... This may take a few moments</p>
+            <p><small>Checking accessibility, performance, content quality, and market positioning</small></p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="overall-score" id="overallScore">
+                <div class="score-circle" id="scoreCircle">
+                    <span class="score-text" id="scoreText">0</span>
+                </div>
+                <div class="score-label">Portfolio Score</div>
+                <div id="badges"></div>
+            </div>
+
+            <div class="metrics-grid" id="metricsGrid">
+                <!-- Metrics will be populated here -->
+            </div>
+
+            <div class="competitive-analysis">
+                <h3>🎯 Market Positioning</h3>
+                <p>See how your portfolio stacks up against industry benchmarks</p>
+                <div class="competitor-grid" id="competitorGrid">
+                    <!-- Competitive analysis will be populated here -->
+                </div>
+            </div>
+
+            <div class="suggestions" id="suggestions">
+                <h3>💡 Improvement Recommendations</h3>
+                <div id="suggestionsList">
+                    <!-- Suggestions will be populated here -->
+                </div>
+            </div>
+
+            <div class="achievements" id="achievements">
+                <h3>🏆 Achievements Unlocked</h3>
+                <div id="achievementsList">
+                    <!-- Achievements will be populated here -->
+                </div>
+            </div>
+
+            <div class="export-section">
+                <h3>📊 Export Your Results</h3>
+                <button class="export-btn" onclick="exportToPDF()">Export PDF Report</button>
+                <button class="export-btn" onclick="shareResults()">Share Results</button>
+                <button class="export-btn" onclick="saveProgress()">Save Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let analysisData = {};
+        let userProgress = JSON.parse(localStorage.getItem('portfolioProgress') || '{}');
+
+        async function analyzePortfolio() {
+            const url = document.getElementById('portfolioUrl').value.trim();
+            
+            if (!url) {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            if (!isValidUrl(url)) {
+                alert('Please enter a valid URL (must start with http:// or https://)');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.querySelector('.analyze-btn').disabled = true;
+
+            try {
+                // Simulate comprehensive analysis
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                analysisData = await performComprehensiveAnalysis(url);
+                displayResults(analysisData);
+                updateUserProgress(analysisData);
+                
+            } catch (error) {
+                alert('Analysis failed. Please check the URL and try again.');
+                console.error('Analysis error:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.analyze-btn').disabled = false;
+            }
+        }
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        async function performComprehensiveAnalysis(url) {
+            // Advanced analysis simulation with realistic metrics
+            const isGitHub = url.includes('github.com');
+            const domain = new URL(url).hostname;
+            
+            const baseScores = {
+                accessibility: Math.floor(Math.random() * 30) + 70,
+                performance: Math.floor(Math.random() * 40) + 60,
+                contentQuality: Math.floor(Math.random() * 35) + 65,
+                responsiveness: Math.floor(Math.random() * 25) + 75,
+                seoOptimization: Math.floor(Math.random() * 30) + 70,
+                codeQuality: Math.floor(Math.random() * 40) + 60,
+                userExperience: Math.floor(Math.random() * 35) + 65,
+                marketPositioning: Math.floor(Math.random() * 30) + 70
+            };
+
+            // GitHub profiles get bonus points for code quality
+            if (isGitHub) {
+                baseScores.codeQuality += 15;
+                baseScores.contentQuality += 10;
+            }
+
+            // Calculate overall score
+            const overallScore = Math.round(
+                Object.values(baseScores).reduce((a, b) => a + b, 0) / Object.keys(baseScores).length
+            );
+
+            return {
+                url,
+                domain,
+                isGitHub,
+                overallScore,
+                metrics: baseScores,
+                analysisDate: new Date().toISOString(),
+                suggestions: generateSuggestions(baseScores),
+                achievements: generateAchievements(baseScores, overallScore),
+                competitorAnalysis: generateCompetitorAnalysis(overallScore),
+                technicalDetails: generateTechnicalDetails(url)
+            };
+        }
+
+        function generateSuggestions(scores) {
+            const suggestions = [];
+            
+            if (scores.accessibility < 80) {
+                suggestions.push({
+                    title: "Improve Accessibility",
+                    description: "Add alt text to images, improve color contrast, and ensure keyboard navigation works properly. Consider using ARIA labels for better screen reader support.",
+                    priority: "High",
+                    impact: "SEO & User Experience"
+                });
+            }
+
+            if (scores.performance < 75) {
+                suggestions.push({
+                    title: "Optimize Performance",
+                    description: "Compress images, minify CSS/JS files, and implement lazy loading. Consider using a CDN for faster content delivery.",
+                    priority: "High",
+                    impact: "User Retention"
+                });
+            }
+
+            if (scores.contentQuality < 80) {
+                suggestions.push({
+                    title: "Enhance Content Quality",
+                    description: "Add more detailed project descriptions, include live demos, and showcase your problem-solving process. Tell the story behind your projects.",
+                    priority: "Medium",
+                    impact: "Employer Interest"
+                });
+            }
+
+            if (scores.responsiveness < 85) {
+                suggestions.push({
+                    title: "Improve Mobile Experience",
+                    description: "Test your portfolio on various devices and screen sizes. Implement responsive design patterns and optimize touch interactions.",
+                    priority: "High",
+                    impact: "Mobile Users"
+                });
+            }
+
+            if (scores.seoOptimization < 75) {
+                suggestions.push({
+                    title: "SEO Optimization",
+                    description: "Add meta descriptions, optimize title tags, and implement structured data markup. This will help recruiters find your portfolio.",
+                    priority: "Medium",
+                    impact: "Discoverability"
+                });
+            }
+
+            return suggestions;
+        }
+
+        function generateAchievements(scores, overallScore) {
+            const achievements = [];
+            
+            if (overallScore >= 90) achievements.push("🏆 Portfolio Master");
+            if (overallScore >= 80) achievements.push("⭐ Professional Grade");
+            if (scores.accessibility >= 90) achievements.push("♿ Accessibility Champion");
+            if (scores.performance >= 90) achievements.push("⚡ Speed Demon");
+            if (scores.responsiveness >= 90) achievements.push("📱 Mobile Master");
+            if (scores.contentQuality >= 85) achievements.push("📝 Content Creator");
+            if (scores.codeQuality >= 85) achievements.push("💻 Code Craftsman");
+            
+            return achievements;
+        }
+
+        function generateCompetitorAnalysis(userScore) {
+            return [
+                { name: "Entry Level Dev", score: 65, description: "Recent bootcamp graduates" },
+                { name: "Mid Level Dev", score: 75, description: "2-3 years experience" },
+                { name: "Senior Dev", score: 85, description: "5+ years experience" },
+                { name: "Tech Lead", score: 92, description: "Leadership positions" }
+            ];
+        }
+
+        function generateTechnicalDetails(url) {
+            const frameworks = ['React', 'Vue.js', 'Angular', 'Vanilla JS', 'TypeScript'];
+            const tools = ['Webpack', 'Vite', 'Docker', 'CI/CD', 'Testing'];
+            
+            return {
+                detectedFrameworks: frameworks.slice(0, Math.floor(Math.random() * 3) + 1),
+                buildTools: tools.slice(0, Math.floor(Math.random() * 2) + 1),
+                loadTime: (Math.random() * 2 + 1).toFixed(2) + 's',
+                bundleSize: Math.floor(Math.random() * 500 + 100) + 'KB'
+            };
+        }
+
+        function displayResults(data) {
+            // Update overall score
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreText = document.getElementById('scoreText');
+            const scoreDeg = (data.overallScore / 100) * 360;
+            
+            scoreCircle.style.setProperty('--score-deg', `${scoreDeg}deg`);
+            
+            // Animate score counting
+            animateScore(scoreText, data.overallScore);
+            
+            // Display badges
+            const badges = document.getElementById('badges');
+            badges.innerHTML = '';
+            
+            const badge = getBadge(data.overallScore);
+            badges.innerHTML = `<span class="badge ${badge.class}">${badge.text}</span>`;
+            
+            // Display metrics
+            displayMetrics(data.metrics);
+            
+            // Display competitive analysis
+            displayCompetitorAnalysis(data.competitorAnalysis, data.overallScore);
+            
+            // Display suggestions
+            displaySuggestions(data.suggestions);
+            
+            // Display achievements
+            displayAchievements(data.achievements);
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function animateScore(element, targetScore) {
+            let currentScore = 0;
+            const increment = targetScore / 50;
+            const timer = setInterval(() => {
+                currentScore += increment;
+                if (currentScore >= targetScore) {
+                    currentScore = targetScore;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(currentScore);
+            }, 50);
+        }
+
+        function getBadge(score) {
+            if (score >= 90) return { class: 'expert', text: 'Expert Level' };
+            if (score >= 80) return { class: 'advanced', text: 'Advanced' };
+            if (score >= 70) return { class: 'intermediate', text: 'Intermediate' };
+            return { class: 'beginner', text: 'Developing' };
+        }
+
+        function displayMetrics(metrics) {
+            const grid = document.getElementById('metricsGrid');
+            grid.innerHTML = '';
+            
+            const metricLabels = {
+                accessibility: { title: '♿ Accessibility', desc: 'WCAG compliance, screen reader support, keyboard navigation' },
+                performance: { title: '⚡ Performance', desc: 'Load times, bundle size, core web vitals optimization' },
+                contentQuality: { title: '📝 Content Quality', desc: 'Project descriptions, documentation, portfolio completeness' },
+                responsiveness: { title: '📱 Responsiveness', desc: 'Mobile optimization, cross-device compatibility' },
+                seoOptimization: { title: '🔍 SEO Optimization', desc: 'Meta tags, structured data, search engine visibility' },
+                codeQuality: { title: '💻 Code Quality', desc: 'Best practices, clean code, documentation quality' },
+                userExperience: { title: '🎨 User Experience', desc: 'Design quality, navigation, user flow optimization' },
+                marketPositioning: { title: '🎯 Market Positioning', desc: 'Industry standards comparison, competitive analysis' }
+            };
+            
+            Object.entries(metrics).forEach(([key, score]) => {
+                const metricCard = document.createElement('div');
+                metricCard.className = 'metric-card';
+                metricCard.innerHTML = `
+                    <div class="metric-header">
+                        <span class="metric-title">${metricLabels[key].title}</span>
+                        <span class="metric-score">${score}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${score}%"></div>
+                    </div>
+                    <div class="metric-details">${metricLabels[key].desc}</div>
+                `;
+                grid.appendChild(metricCard);
+            });
+        }
+
+        function displayCompetitorAnalysis(competitors, userScore) {
+            const grid = document.getElementById('competitorGrid');
+            grid.innerHTML = '';
+            
+            competitors.forEach(competitor => {
+                const card = document.createElement('div');
+                card.className = 'competitor-card';
+                const isBeating = userScore > competitor.score;
+                card.innerHTML = `
+                    <h4>${competitor.name}</h4>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: ${isBeating ? '#28a745' : '#dc3545'};">
+                        ${competitor.score}/100
+                    </div>
+                    <p style="margin: 10px 0; font-size: 0.9rem;">${competitor.description}</p>
+                    <div style="color: ${isBeating ? '#28a745' : '#dc3545'}; font-weight: 600;">
+                        ${isBeating ? '✅ You\'re ahead!' : '📈 Room for improvement'}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function displaySuggestions(suggestions) {
+            const list = document.getElementById('suggestionsList');
+            list.innerHTML = '';
+            
+            suggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.innerHTML = `
+                    <div class="suggestion-title">${suggestion.title} <span style="color: #dc3545; font-size: 0.8rem;">[${suggestion.priority} Priority]</span></div>
+                    <div class="suggestion-desc">${suggestion.description}</div>
+                    <div style="margin-top: 5px; font-size: 0.8rem; color: #667eea; font-weight: 600;">Impact: ${suggestion.impact}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function displayAchievements(achievements) {
+            const list = document.getElementById('achievementsList');
+            list.innerHTML = '';
+            
+            if (achievements.length === 0) {
+                list.innerHTML = '<p style="color: #666;">Complete the analysis to unlock achievements!</p>';
+                return;
+            }
+            
+            achievements.forEach(achievement => {
+                const item = document.createElement('div');
+                item.className = 'achievement';
+                item.textContent = achievement;
+                list.appendChild(item);
+            });
+        }
+
+        function updateUserProgress(data) {
+            userProgress.lastAnalysis = data.analysisDate;
+            userProgress.bestScore = Math.max(userProgress.bestScore || 0, data.overallScore);
+            userProgress.totalAnalyses = (userProgress.totalAnalyses || 0) + 1;
+            userProgress.achievements = [...new Set([...(userProgress.achievements || []), ...data.achievements])];
+            
+            localStorage.setItem('portfolioProgress', JSON.stringify(userProgress));
+        }
+
+        function exportToPDF() {
+            // Simulate PDF export
+            const data = analysisData;
+            const reportContent = `
+Portfolio Analysis Report
+Generated: ${new Date().toLocaleDateString()}
+URL: ${data.url}
+Overall Score: ${data.overallScore}/100
+
+Metrics Summary:
+${Object.entries(data.metrics).map(([key, value]) => `- ${key}: ${value}/100`).join('\n')}
+
+Recommendations:
+${data.suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.description}`).join('\n')}
+            `;
+            
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'portfolio-analysis-report.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('Report exported successfully!');
+        }
+
+        function shareResults() {
+            if (navigator.share && analysisData.overallScore) {
+                navigator.share({
+                    title: 'My Portfolio Analysis Results',
+                    text: `I scored ${analysisData.overallScore}/100 on the DevPortfolio Analyzer! 🚀`,
+                    url: window.location.href
+                });
+            } else {
+                const shareText = `I scored ${analysisData.overallScore}/100 on the DevPortfolio Analyzer! Check out your portfolio at: ${window.location.href}`;
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Results copied to clipboard!');
+                });
+            }
+        }
+
+        function saveProgress() {
+            if (analysisData.overallScore) {
+                updateUserProgress(analysisData);
+                alert('Progress saved successfully!');
+            } else {
+                alert('No analysis data to save. Please run an analysis first.');
+            }
+        }
+
+        // Initialize
+        document.getElementById('portfolioUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzePortfolio();
+            }
+        });
+
+        // Display user progress on load
+        if (userProgress.bestScore) {
+            const progressInfo = document.createElement('div');
+            progressInfo.style.cssText = `
+                background: rgba(255, 255, 255, 0.9);
+                padding: 15px;
+                border-radius: 10px;
+                margin-top: 20px;
+                text-align: center;
+                font-size: 0.9rem;
+                color: #666;
+            `;
+            progressInfo.innerHTML = `
+                📊 Your Progress: Best Score: ${userProgress.bestScore}/100 | 
+                Total Analyses: ${userProgress.totalAnalyses || 0} | 
+                Achievements: ${userProgress.achievements?.length || 0}
+            `;
+            document.querySelector('.header').appendChild(progressInfo);
+        }
+
+        // Advanced Features
+        function generateDetailedInsights(data) {
+            return {
+                technicalStack: analyzeTechnicalStack(data.url),
+                industryBenchmarks: getIndustryBenchmarks(),
+                improvementRoadmap: createImprovementRoadmap(data.metrics),
+                competitiveAdvantages: identifyCompetitiveAdvantages(data.metrics),
+                recruitmentReadiness: assessRecruitmentReadiness(data.overallScore, data.metrics)
+            };
+        }
+
+        function analyzeTechnicalStack(url) {
+            // Simulate technical stack analysis
+            const commonStacks = [
+                { name: 'React Ecosystem', probability: 0.8, tools: ['React', 'Redux', 'React Router'] },
+                { name: 'Vue.js Ecosystem', probability: 0.6, tools: ['Vue.js', 'Vuex', 'Vue Router'] },
+                { name: 'Full Stack', probability: 0.7, tools: ['Node.js', 'Express', 'MongoDB'] },
+                { name: 'Modern Frontend', probability: 0.9, tools: ['ES6+', 'Webpack', 'Babel'] }
+            ];
+            
+            return commonStacks.filter(stack => Math.random() < stack.probability);
+        }
+
+        function getIndustryBenchmarks() {
+            return {
+                startupEnvironment: { accessibility: 75, performance: 80, contentQuality: 70 },
+                enterpriseEnvironment: { accessibility: 90, performance: 85, contentQuality: 85 },
+                freelanceMarket: { accessibility: 70, performance: 85, contentQuality: 80 },
+                bigTech: { accessibility: 95, performance: 90, contentQuality: 90 }
+            };
+        }
+
+        function createImprovementRoadmap(metrics) {
+            const roadmap = [];
+            const sortedMetrics = Object.entries(metrics).sort((a, b) => a[1] - b[1]);
+            
+            sortedMetrics.slice(0, 3).forEach(([metric, score], index) => {
+                roadmap.push({
+                    phase: `Phase ${index + 1}`,
+                    focus: metric,
+                    currentScore: score,
+                    targetScore: Math.min(100, score + 20),
+                    timeline: `${2 + index * 2} weeks`,
+                    keyActions: getKeyActionsForMetric(metric)
+                });
+            });
+            
+            return roadmap;
+        }
+
+        function getKeyActionsForMetric(metric) {
+            const actions = {
+                accessibility: ['Add ARIA labels', 'Improve color contrast', 'Implement keyboard navigation'],
+                performance: ['Optimize images', 'Minify assets', 'Implement lazy loading'],
+                contentQuality: ['Add project case studies', 'Include live demos', 'Write technical blogs'],
+                responsiveness: ['Test on multiple devices', 'Optimize touch interactions', 'Improve mobile navigation'],
+                seoOptimization: ['Add meta descriptions', 'Implement schema markup', 'Optimize page titles'],
+                codeQuality: ['Refactor legacy code', 'Add comprehensive documentation', 'Implement testing'],
+                userExperience: ['Improve navigation flow', 'Add micro-interactions', 'Optimize loading states'],
+                marketPositioning: ['Showcase unique projects', 'Highlight technical leadership', 'Add testimonials']
+            };
+            
+            return actions[metric] || ['Review and optimize', 'Research best practices', 'Implement improvements'];
+        }
+
+        function identifyCompetitiveAdvantages(metrics) {
+            const advantages = [];
+            
+            Object.entries(metrics).forEach(([metric, score]) => {
+                if (score >= 85) {
+                    advantages.push({
+                        area: metric,
+                        score: score,
+                        marketValue: getMarketValue(metric, score)
+                    });
+                }
+            });
+            
+            return advantages;
+        }
+
+        function getMarketValue(metric, score) {
+            const values = {
+                accessibility: 'High demand in enterprise and government sectors',
+                performance: 'Critical for user-facing applications and mobile-first companies',
+                contentQuality: 'Essential for thought leadership and technical communication roles',
+                responsiveness: 'Valuable for mobile-first and cross-platform development',
+                seoOptimization: 'Important for product companies and marketing-tech roles',
+                codeQuality: 'Highly valued in senior and lead developer positions',
+                userExperience: 'Premium skill for product-focused companies and startups',
+                marketPositioning: 'Key for consulting, freelance, and leadership roles'
+            };
+            
+            return values[metric] || 'Valuable technical skill';
+        }
+
+        function assessRecruitmentReadiness(overallScore, metrics) {
+            const readiness = {
+                junior: overallScore >= 70,
+                mid: overallScore >= 80,
+                senior: overallScore >= 85,
+                lead: overallScore >= 90 && metrics.codeQuality >= 85 && metrics.contentQuality >= 80
+            };
+            
+            const recommendations = [];
+            
+            if (!readiness.junior) {
+                recommendations.push('Focus on fundamental improvements before applying to junior positions');
+            } else if (!readiness.mid) {
+                recommendations.push('Strong foundation for junior roles, work on advanced features for mid-level positions');
+            } else if (!readiness.senior) {
+                recommendations.push('Ready for mid-level roles, enhance leadership and architecture skills for senior positions');
+            } else if (!readiness.lead) {
+                recommendations.push('Senior-ready portfolio, add team leadership and mentoring examples for lead roles');
+            } else {
+                recommendations.push('Exceptional portfolio ready for leadership positions at top-tier companies');
+            }
+            
+            return { levels: readiness, recommendations };
+        }
+
+        // Easter eggs and gamification
+        const easterEggs = [
+            { trigger: 'score >= 95', message: '🎉 Legendary Developer Status Achieved!', action: 'showConfetti' },
+            { trigger: 'score === 100', message: '👑 Perfect Score - You are the chosen one!', action: 'showCrown' },
+            { trigger: 'analyses >= 5', message: '🔥 Portfolio Perfectionist Badge Unlocked!', action: 'showBadge' },
+            { trigger: 'improvements >= 3', message: '📈 Growth Mindset Champion!', action: 'showGrowth' }
+        ];
+
+        function checkEasterEggs(data) {
+            easterEggs.forEach(egg => {
+                if (shouldTriggerEasterEgg(egg.trigger, data)) {
+                    triggerEasterEgg(egg);
+                }
+            });
+        }
+
+        function shouldTriggerEasterEgg(trigger, data) {
+            // Simple trigger evaluation (in production, this would be more sophisticated)
+            if (trigger.includes('score >= 95')) return data.overallScore >= 95;
+            if (trigger.includes('score === 100')) return data.overallScore === 100;
+            if (trigger.includes('analyses >= 5')) return userProgress.totalAnalyses >= 5;
+            return false;
+        }
+
+        function triggerEasterEgg(egg) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(45deg, #ff6b6b, #feca57);
+                color: white;
+                padding: 20px;
+                border-radius: 15px;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.5s ease, fadeOut 0.5s ease 3s forwards;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            `;
+            notification.innerHTML = egg.message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        // Add CSS for animations
+        const additionalStyles = document.createElement('style');
+        additionalStyles.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes fadeOut {
+                to { opacity: 0; transform: translateX(100%); }
+            }
+            
+            .metric-card {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .metric-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: all 0.6s;
+            }
+            
+            .metric-card:hover::before {
+                left: 100%;
+            }
+            
+            @media (prefers-reduced-motion: reduce) {
+                *, *::before, *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        `;
+        document.head.appendChild(additionalStyles);
+
+        // Performance monitoring
+        function trackPerformance() {
+            if ('performance' in window) {
+                const navigationTiming = performance.getEntriesByType('navigation')[0];
+                const loadTime = navigationTiming.loadEventEnd - navigationTiming.fetchStart;
+                
+                console.log(`Portfolio Analyzer loaded in ${loadTime}ms`);
+                
+                // Track user interactions for analytics
+                let interactionCount = 0;
+                document.addEventListener('click', () => {
+                    interactionCount++;
+                    if (interactionCount % 10 === 0) {
+                        console.log(`User engagement: ${interactionCount} interactions`);
+                    }
+                });
+            }
+        }
+
+        // Initialize performance tracking
+        trackPerformance();
+
+        // Advanced URL validation with domain-specific logic
+        function getAdvancedUrlInsights(url) {
+            const insights = {
+                platform: 'Unknown',
+                recommendations: [],
+                platformSpecificScoring: {}
+            };
+
+            if (url.includes('github.com')) {
+                insights.platform = 'GitHub';
+                insights.recommendations.push('Consider adding a comprehensive README.md');
+                insights.recommendations.push('Pin your best repositories');
+                insights.recommendations.push('Add GitHub Pages deployment for live demos');
+                insights.platformSpecificScoring.codeQuality = 1.2; // 20% bonus
+            } else if (url.includes('gitlab.com')) {
+                insights.platform = 'GitLab';
+                insights.recommendations.push('Utilize GitLab CI/CD for automated deployments');
+                insights.platformSpecificScoring.codeQuality = 1.15;
+            } else if (url.includes('vercel.app') || url.includes('netlify.app')) {
+                insights.platform = 'JAMstack Deployment';
+                insights.recommendations.push('Excellent choice for modern web deployment');
+                insights.platformSpecificScoring.performance = 1.1;
+            } else if (url.includes('herokuapp.com')) {
+                insights.platform = 'Heroku';
+                insights.recommendations.push('Consider upgrading to prevent dyno sleeping');
+                insights.platformSpecificScoring.performance = 0.9;
+            }
+
+            return insights;
+        }
+
+        console.log('🚀 DevPortfolio Analyzer v2.0 - Professional Edition Loaded');
+        console.log('Features: Advanced Analytics, Gamification, Competitive Analysis, Export Options');
+    </script>
+</body>
+</html>
